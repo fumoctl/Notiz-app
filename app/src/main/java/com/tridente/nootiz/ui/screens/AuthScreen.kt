@@ -53,13 +53,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tridente.nootiz.data.local.SessionPreferences
@@ -151,82 +151,37 @@ fun AuthScreen(
                 .padding(horizontal = 28.dp, vertical = 20.dp),
             horizontalAlignment = Alignment.Start
         ) {
-            // Top Brand Icon & Mode Switch Pill
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            // Top Brand Icon (Upper-right mode switch button removed)
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(RoyalBlue),
+                contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(RoyalBlue),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = "CloudNotes",
-                        tint = LimeAccent,
-                        modifier = Modifier.size(22.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.weight(1f))
-
-                Row(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(50))
-                        .background(NavyInputSurface)
-                        .padding(4.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(50))
-                            .background(if (!isRegisterMode) RoyalBlue else Color.Transparent)
-                            .clickable {
-                                isRegisterMode = false
-                                errorMessage = null
-                            }
-                            .padding(horizontal = 14.dp, vertical = 6.dp)
-                    ) {
-                        Text(
-                            text = "Acceso",
-                            color = if (!isRegisterMode) PureWhite else TextMutedLight,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(50))
-                            .background(if (isRegisterMode) RoyalBlue else Color.Transparent)
-                            .clickable {
-                                isRegisterMode = true
-                                errorMessage = null
-                            }
-                            .padding(horizontal = 14.dp, vertical = 6.dp)
-                    ) {
-                        Text(
-                            text = "Registro",
-                            color = if (isRegisterMode) PureWhite else TextMutedLight,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
-                }
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "CloudNotes",
+                    tint = LimeAccent,
+                    modifier = Modifier.size(22.dp)
+                )
             }
 
             Spacer(modifier = Modifier.height(18.dp))
 
             // Title & Subtitle matching Image 1 & 3
             Text(
-                text = "CloudNotes",
+                text = if (isRegisterMode) "Crear perfil" else "CloudNotes",
                 style = MaterialTheme.typography.headlineLarge,
                 color = PureWhite
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Tus ideas, siempre contigo.",
+                text = if (isRegisterMode) {
+                    "Configura tu cuenta para empezar a organizar tus ideas."
+                } else {
+                    "Tus ideas, siempre contigo."
+                },
                 style = MaterialTheme.typography.bodyMedium,
                 color = TextMutedLight
             )
@@ -610,22 +565,54 @@ fun AuthScreen(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            // Secondary links matching Image 1 & 3
+            // Secondary links matching reference image:
+            // "¿Olvidaste tu contraseña?"
+            // "¿No tienes una cuenta? Crear cuenta"
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = "¿Olvidaste tu contraseña?",
-                    color = TextMutedLight,
-                    fontSize = 13.sp,
+                if (!isRegisterMode) {
+                    Text(
+                        text = "¿Olvidaste tu contraseña?",
+                        color = TextMutedLight,
+                        fontSize = 13.sp,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable {
+                                infoMessage = "Contacta al administrador del servidor o inicia sesión con Google OAuth."
+                            }
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(6.dp))
+                }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
                         .clickable {
-                            infoMessage = "Contacta al administrador del servidor o inicia sesión con Google OAuth."
+                            isRegisterMode = !isRegisterMode
+                            errorMessage = null
+                            infoMessage = null
                         }
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                )
+                        .padding(horizontal = 10.dp, vertical = 6.dp)
+                ) {
+                    Text(
+                        text = if (isRegisterMode) "¿Ya tienes una cuenta? " else "¿No tienes una cuenta? ",
+                        color = TextMutedLight,
+                        fontSize = 13.sp
+                    )
+                    Text(
+                        text = if (isRegisterMode) "Iniciar sesión" else "Crear cuenta",
+                        color = LimeAccent,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        textDecoration = TextDecoration.Underline
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(4.dp))
 

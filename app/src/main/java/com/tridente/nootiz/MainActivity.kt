@@ -88,6 +88,7 @@ fun NootizApp() {
             DashboardScreen(
                 currentUser = currentUser,
                 serverUrl = sessionPrefs.baseUrl,
+                sessionPrefs = sessionPrefs,
                 apiClient = apiClient,
                 onOpenNote = { note ->
                     destination = AppDestination.Editor(note = note, initialFolderId = note.folderId)

@@ -30,12 +30,16 @@ class SessionPreferences(context: Context) {
     @Volatile
     private var cachedReminders: Map<String, NoteReminder> = emptyMap()
 
+    @Volatile
+    private var cachedPinnedNoteIds: List<String> = emptyList()
+
     companion object {
         private const val PREFS_NAME = "nootiz_session_prefs"
         private const val KEY_BASE_URL = "base_url"
         private const val KEY_JWT_TOKEN = "jwt_token"
         private const val KEY_USER_JSON = "user_json"
         private const val KEY_REMINDERS_JSON = "reminders_json"
+        private const val KEY_PINNED_NOTES_JSON = "pinned_notes_json"
 
         const val DEFAULT_EMULATOR_URL = "http://10.0.2.2:3000"
 
@@ -67,6 +71,7 @@ class SessionPreferences(context: Context) {
             cachedToken = sp.getString(KEY_JWT_TOKEN, null)
             cachedUser = sp.getString(KEY_USER_JSON, null)?.let { parseUserJson(it) }
             cachedReminders = parseRemindersJson(sp.getString(KEY_REMINDERS_JSON, null))
+            cachedPinnedNoteIds = parsePinnedNotesJson(sp.getString(KEY_PINNED_NOTES_JSON, null))
         }
     }
 
@@ -140,6 +145,19 @@ class SessionPreferences(context: Context) {
 
     fun getReminderForNote(noteId: String): NoteReminder? = cachedReminders[noteId]
 
+    fun getPinnedNoteIds(): List<String> = cachedPinnedNoteIds
+
+    fun setPinnedNoteIds(ids: List<String>) {
+        val clean = ids.distinct()
+        cachedPinnedNoteIds = clean
+        ioScope.launch {
+            ensureLoaded()
+            val arr = JSONArray()
+            clean.forEach { arr.put(it) }
+            prefsInstance?.edit()?.putString(KEY_PINNED_NOTES_JSON, arr.toString())?.apply()
+        }
+    }
+
     fun clearAuth() {
         cachedToken = null
         cachedUser = null
@@ -187,5 +205,19 @@ class SessionPreferences(context: Context) {
         } catch (_: Exception) {
         }
         return result
+    }
+
+    private fun parsePinnedNotesJson(raw: String?): List<String> {
+        if (raw.isNullOrBlank()) return emptyList()
+        val list = mutableListOf<String>()
+        try {
+            val arr = JSONArray(raw)
+            for (i in 0 until arr.length()) {
+                val id = arr.optString(i)
+                if (id.isNotBlank()) list.add(id)
+            }
+        } catch (_: Exception) {
+        }
+        return list.distinct()
     }
 }
